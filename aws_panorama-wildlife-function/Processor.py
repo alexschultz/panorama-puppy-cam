@@ -12,11 +12,11 @@ class Processor():
         self.outputs = outputs
         
         # post processing config
-        filters = (9 + 5) * 3
+        filters = (3 + 5) * 3
         self.output_shapes = [
-            (1, 3, 80, 80, 14),
-            (1, 3, 40, 40, 14),
-            (1, 3, 20, 20, 14)
+            (1, 3, 80, 80, 8),
+            (1, 3, 40, 40, 8),
+            (1, 3, 20, 20, 8)
         ]
         self.strides = np.array([8., 16., 32.])
         anchors = np.array([
@@ -25,7 +25,7 @@ class Processor():
             [[116,90], [156,198], [373,326]],
         ])
         self.nl = len(anchors)
-        self.nc = 9 # classes
+        self.nc = 3 # classes
         self.no = self.nc + 5 # outputs per anchor
         self.na = len(anchors[0])
         a = anchors.copy().astype(np.float32)
@@ -81,7 +81,7 @@ class Processor():
             out[..., 2:4] = (out[..., 2:4] * 2) ** 2 * anchor
 
             out[..., 5:] = out[..., 4:5] * out[..., 5:]
-            out = out.reshape((1, 3 * width * height, 14))
+            out = out.reshape((1, 3 * width * height, 8))
             z.append(out)
         pred = np.concatenate(z, 1)
         xc = pred[..., 4] > conf_thres
@@ -114,7 +114,7 @@ class Processor():
             out[..., 0:2] = (out[..., 0:2] * 2. - 0.5 + grid) * stride
             out[..., 2:4] = (out[..., 2:4] * 2) ** 2 * anchor
             
-            out = out.reshape((1, 3 * width * height, 14))
+            out = out.reshape((1, 3 * width * height, 8))
             z.append(out)
         pred = np.concatenate(z, 1)
         xc = pred[..., 4] > conf_thres

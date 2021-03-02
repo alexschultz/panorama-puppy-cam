@@ -6,7 +6,7 @@ from Processor import Processor
 
 HEIGHT = 640
 WIDTH = 640
-class_list = ["turkey","corgi","cayote","bird","fox","squirrel","hawk","deer","raccoon"]
+class_list = ["corgi","cayote","deer"]
 
 
 
@@ -17,7 +17,7 @@ class wildlife_counter(panoramasdk.base):
             "parameters":
                 (
                     ("float", "threshold", "Minimum confidence for display", 0.50),
-                    ("model", "wildlife", "Name of the model in AWS Panorama","panorama-wildlife"),
+                    ("model", "wildlife", "Name of the model in AWS Panorama","panorama-wildlife-v2"),
                     ("int", "batch_size", "Model batch size", 1)
                 ),
             "inputs":
