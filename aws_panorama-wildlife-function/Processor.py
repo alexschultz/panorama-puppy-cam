@@ -1,38 +1,38 @@
-import cv2 
+import cv2
 import sys
 import os
 import numpy as np
 import math
 import time
 
-class Processor():
-    def __init__(self):
-        outputs = []
 
+class Processor():
+    def __init__(self, num_classes):
+        outputs = []
+        self.nc = num_classes
+        self.no = self.nc + 5  # outputs per anchor
         self.outputs = outputs
-        
+
         # post processing config
-        filters = (3 + 5) * 3
+        # filters = (3 + 5) * 3
+
         self.output_shapes = [
-            (1, 3, 80, 80, 8),
-            (1, 3, 40, 40, 8),
-            (1, 3, 20, 20, 8)
+            (1, 3, 80, 80, self.no),
+            (1, 3, 40, 40, self.no),
+            (1, 3, 20, 20, self.no)
         ]
         self.strides = np.array([8., 16., 32.])
         anchors = np.array([
-            [[10,13], [16,30], [33,23]],
-            [[30,61], [62,45], [59,119]],
-            [[116,90], [156,198], [373,326]],
+            [[10, 13], [16, 30], [33, 23]],
+            [[30, 61], [62, 45], [59, 119]],
+            [[116, 90], [156, 198], [373, 326]],
         ])
         self.nl = len(anchors)
-        self.nc = 3 # classes
-        self.no = self.nc + 5 # outputs per anchor
         self.na = len(anchors[0])
         a = anchors.copy().astype(np.float32)
         a = a.reshape(self.nl, -1, 2)
         self.anchors = a.copy()
         self.anchor_grid = a.copy().reshape(self.nl, 1, -1, 1, 1, 2)
-
 
     def extract_object_grids(self, output):
         """
@@ -81,7 +81,7 @@ class Processor():
             out[..., 2:4] = (out[..., 2:4] * 2) ** 2 * anchor
 
             out[..., 5:] = out[..., 4:5] * out[..., 5:]
-            out = out.reshape((1, 3 * width * height, 8))
+            out = out.reshape((1, 3 * width * height, self.no))
             z.append(out)
         pred = np.concatenate(z, 1)
         xc = pred[..., 4] > conf_thres
@@ -113,14 +113,14 @@ class Processor():
             _, _, width, height, _ = out.shape
             out[..., 0:2] = (out[..., 0:2] * 2. - 0.5 + grid) * stride
             out[..., 2:4] = (out[..., 2:4] * 2) ** 2 * anchor
-            
-            out = out.reshape((1, 3 * width * height, 8))
+
+            out = out.reshape((1, 3 * width * height, self.no))
             z.append(out)
         pred = np.concatenate(z, 1)
         xc = pred[..., 4] > conf_thres
         pred = pred[xc]
         return self.nms(pred)
-    
+
     def make_grid(self, nx, ny):
         """
         Create scaling tensor based on box location
@@ -143,16 +143,16 @@ class Processor():
 
     def sigmoid_v(self, array):
         return np.reciprocal(np.exp(-array) + 1.0)
-        
+
     def exponential_v(self, array):
         return np.exp(array)
-    
+
     def non_max_suppression(self, boxes, confs, classes, iou_thres=0.6):
         x1 = boxes[:, 0]
         y1 = boxes[:, 1]
         x2 = boxes[:, 2]
         y2 = boxes[:, 3]
-        areas = (x2 - x1 + 1) * (y2 - y1 + 1) 
+        areas = (x2 - x1 + 1) * (y2 - y1 + 1)
         order = confs.flatten().argsort()[::-1]
         keep = []
         while order.size > 0:
@@ -166,7 +166,7 @@ class Processor():
             h = np.maximum(0.0, yy2 - yy1 + 1)
             inter = w * h
             ovr = inter / (areas[i] + areas[order[1:]] - inter)
-            inds = np.where( ovr <= iou_thres)[0]
+            inds = np.where(ovr <= iou_thres)[0]
             order = order[inds + 1]
         boxes = boxes[keep]
         confs = confs[keep]
