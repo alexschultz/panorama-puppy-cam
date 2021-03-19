@@ -99,7 +99,7 @@ class YOLOv5(panoramasdk.base):
     def entry(self, inputs, outputs):
         try:
             self.frame_num += 1
-            cayote_spotted = False
+            coyote_spotted = False
             for i in range(len(inputs.video_in)):
                 stream = inputs.video_in[i]
                 in_image = stream.image
