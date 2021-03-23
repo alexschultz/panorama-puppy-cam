@@ -7,7 +7,7 @@ import boto3
 
 
 INPUT_SIZE = 640
-MODEL = 'yolov5s-640'
+MODEL = 'yolov5s-wildlife'
 THRESHOLD = 0.5
 CLASSES = ["corgi", "coyote", "deer"]
 
